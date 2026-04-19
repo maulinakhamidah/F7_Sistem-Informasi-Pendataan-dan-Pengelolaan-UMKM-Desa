@@ -53,6 +53,15 @@ namespace ProjekPABD
             this.Hide();
         }
 
+        // NAVIGASI KE FORM PEMILIK
+        private void btnPemilik_Click(object sender, EventArgs e)
+        {
+            FormPemilik fPemilik = new FormPemilik();
+            fPemilik.Show();
+            this.Hide();
+        }
+
+
         
     }
 }
