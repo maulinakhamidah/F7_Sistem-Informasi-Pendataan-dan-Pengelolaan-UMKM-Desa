@@ -28,6 +28,23 @@ namespace ProjekPABD
             CheckConnection();
         }
 
+        // FUNGSI CEK KONEKSI (POIN UJIAN BAGIAN B)
+        private void CheckConnection()
+        {
+            try
+            {
+                conn.Open();
+                lblKoneksi.Text = "Status Koneksi: Terhubung";
+                lblKoneksi.ForeColor = Color.Green;
+                conn.Close();
+            }
+            catch (Exception)
+            {
+                lblKoneksi.Text = "Status Koneksi: Terputus";
+                lblKoneksi.ForeColor = Color.Red;
+            }
+        }
+
         
     }
 }
