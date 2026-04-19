@@ -17,6 +17,11 @@ namespace ProjekPABD
         SqlConnection conn = new SqlConnection(
             "Data Source= LAPTOP-66MU6CLK\\MAULINAA;Initial Catalog=UMKM_Desa;Integrated Security=True");
 
-       
+        public Form2()
+        {
+            InitializeComponent();
+        }
+
+        
     }
 }
