@@ -112,6 +112,9 @@ namespace ProjekPABD
             }
         }
 
-        
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            Application.Exit(); // Tombol X untuk menutup aplikasi karena border form dihapus
+        }
     }
 }
