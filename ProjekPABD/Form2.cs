@@ -45,6 +45,14 @@ namespace ProjekPABD
             }
         }
 
+        // NAVIGASI KE FORM UMKM
+        private void btnKeUMKM_Click(object sender, EventArgs e)
+        {
+            formUMKM fUMKM = new formUMKM();
+            fUMKM.Show();
+            this.Hide();
+        }
+
         
     }
 }
