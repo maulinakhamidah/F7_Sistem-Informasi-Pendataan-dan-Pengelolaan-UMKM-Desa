@@ -87,6 +87,11 @@ namespace ProjekPABD
             }
         }
 
-        
+        private void button2_Click(object sender, EventArgs e)
+        {
+            formLaporan laporan = new formLaporan();
+            laporan.Show();
+            this.Hide();
+        }
     }
 }
