@@ -70,6 +70,23 @@ namespace ProjekPABD
             this.Hide();
         }
 
+        // LOGOUT
+        private void btnLogout_Click(object sender, EventArgs e)
+        {
+            // Menampilkan pesan konfirmasi sebelum keluar
+            DialogResult result = MessageBox.Show("Apakah Anda yakin ingin keluar?", "Konfirmasi Logout", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                // 1. Panggil Form Login (Form1)
+                Form1 loginForm = new Form1();
+                loginForm.Show();
+
+                // 2. Tutup Form Menu Utama (Form2)
+                this.Close();
+            }
+        }
+
         
     }
 }
