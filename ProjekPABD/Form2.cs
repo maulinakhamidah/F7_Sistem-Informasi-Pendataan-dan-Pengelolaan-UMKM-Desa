@@ -22,6 +22,12 @@ namespace ProjekPABD
             InitializeComponent();
         }
 
+        private void Form2_Load(object sender, EventArgs e)
+        {
+            // Panggil pengecekan koneksi saat dashboard terbuka
+            CheckConnection();
+        }
+
         
     }
 }
