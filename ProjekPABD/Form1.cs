@@ -18,5 +18,11 @@ namespace ProjekPABD
             StyleForm(); // Panggil fungsi desain saat form dibuat
         }
 
-    }  
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            // Set TextBox Password agar menampilkan bintang/bulatan
+            txtPass.UseSystemPasswordChar = true;
+        }
+        
+    }
 }
