@@ -62,6 +62,14 @@ namespace ProjekPABD
         }
 
 
+        // NAVIGASI KE FORM PRODUK
+        private void btnKeProduk_Click(object sender, EventArgs e)
+        {
+            formProduk fProduk = new formProduk();
+            fProduk.Show();
+            this.Hide();
+        }
+
         
     }
 }
