@@ -270,6 +270,60 @@ namespace ProjekPABD
             }
         }
 
-        
+        // =========================================================================
+        // PENGGABUNGAN POIN 3: TOMBOL CEK RENTAN (VULNERABLE SEARCH) UNTUK DEMO SQL INJECTION
+        // =========================================================================
+        private void btnTestInjection_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string inputSerangan = txtNama.Text;
+
+                // HAPUS ikatan binding sebelum mengosongkan/mengisi ulang DataTable
+                txtID.DataBindings.Clear();
+                txtNama.DataBindings.Clear();
+                txtAlamat.DataBindings.Clear();
+                txtNomor.DataBindings.Clear();
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    string query = "SELECT * FROM vwPemilikPublic WHERE NamaPemilik = '" + inputSerangan + "'";
+                    SqlDataAdapter sda = new SqlDataAdapter(query, conn);
+
+                    // Putus binding source ke grid view agar tidak bentrok
+                    dgvPemilik.DataSource = null;
+                    dtPemilik.Clear();
+                    sda.Fill(dtPemilik);
+
+                    if (inputSerangan.Contains("'"))
+                    {
+                        foreach (DataRow row in dtPemilik.Rows)
+                        {
+                            row["NamaPemilik"] = "⚠️ ALL IN HACKED ⚠️";
+                            row["AlamatPemilik"] = "DATABASE BREACHED!";
+                        }
+
+                        dgvPemilik.DataSource = dtPemilik;
+
+                        MessageBox.Show("Skenario Berhasil!\nQuery berhasil ditembus dan dimanipulasi.\nSemua data nama pemilik di memori berhasil di-deface!",
+                                        "SQL Injection Success", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        dgvPemilik.DataSource = dtPemilik;
+                        // Pasang kembali binding ke textbox jika ini pencarian normal
+                        AturBindingKomponen();
+                        MessageBox.Show("Pencarian normal selesai.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error Eksperimen: " + ex.Message, "SQL Injection Lab", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        // PERBAIKAN: Mengosongkan text kotak yang sesungguhnya
+       
         }
 }
