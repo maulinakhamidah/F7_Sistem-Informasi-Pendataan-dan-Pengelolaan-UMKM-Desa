@@ -33,6 +33,7 @@ namespace ProjekPABD
 
         private void btnKeUMKM_Click(object sender, EventArgs e) { new formUMKM().Show(); this.Hide(); }
         private void btnPemilik_Click(object sender, EventArgs e) { new FormPemilik().Show(); this.Hide(); }
+        private void btnKeProduk_Click(object sender, EventArgs e) { new formProduk().Show(); this.Hide(); }
         
     }
 }
