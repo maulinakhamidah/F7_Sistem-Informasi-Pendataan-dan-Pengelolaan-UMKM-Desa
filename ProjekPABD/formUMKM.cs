@@ -324,6 +324,21 @@ namespace ProjekPABD
         }
 
         // PERBAIKAN: Mengosongkan text kotak yang sesungguhnya
-       
+        private void BersihkanLayar()
+        {
+            // Pindahkan posisi binding ke paling akhir/baru agar textbox kosong secara natural
+            pemilikBindingSource.Position = -1;
+
+            // Kosongkan teks manual jika posisi -1 belum membersihkannya
+            txtID.Text = "";
+            txtNama.Text = "";
+            txtAlamat.Text = "";
+            txtNomor.Text = "";
+
+            txtNama.Focus();
+        }
+
+        // PERBAIKAN: Mengembalikan Data Binding penuh setelah diacak-acak oleh tombol Test Injection
+        
         }
 }
