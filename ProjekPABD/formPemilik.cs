@@ -211,6 +211,60 @@ namespace ProjekPABD
         }
 
         // 5. DELETE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
+        private void btnHapus_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtID.Text))
+            {
+                MessageBox.Show("Pilih data pemilik yang ingin dihapus terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            if (MessageBox.Show("Yakin ingin menghapus data ini?", "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    {
+                        // Memanggil objek STORED PROCEDURE 'sp_DeletePemilik'
+                        using (SqlCommand cmd = new SqlCommand("sp_DeletePemilik", conn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@ID", Convert.ToInt32(txtID.Text));
+
+                            conn.Open();
+                            cmd.ExecuteNonQuery();
+
+                            MessageBox.Show("Data pemilik berhasil dihapus via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                            TampilkanDataDenganView();
+                            HitungTotal();
+                            BersihkanLayar();
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    if (ex.Number == 547)
+                    {
+                        MessageBox.Show("Gagal Menghapus: Pemilik ini tidak bisa dihapus karena masih memiliki usaha UMKM yang terdaftar.\n\nHapus terlebih dahulu data UMKM milik orang ini.",
+                                        "Ketergantungan Hubungan Relasi Data", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Gagal Hapus (Database Error): " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Gagal Hapus: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        // =========================================================================
+        // PENGGABUNGAN POIN 3: TOMBOL CEK RENTAN (VULNERABLE SEARCH) UNTUK DEMO SQL INJECTION
+        // =========================================================================
+        
+        }
     }
 }
