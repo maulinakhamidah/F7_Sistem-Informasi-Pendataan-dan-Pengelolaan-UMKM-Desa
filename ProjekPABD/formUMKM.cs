@@ -348,6 +348,15 @@ namespace ProjekPABD
         }
 
         // PERBAIKAN: Clear memanggil pengosongan komponen textbox secara nyata
- 
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            BersihkanLayar();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Form2 menu = new Form2();
+            menu.Show();
+            this.Hide();
         }
 }
