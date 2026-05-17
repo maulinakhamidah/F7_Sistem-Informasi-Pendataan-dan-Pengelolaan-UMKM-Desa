@@ -34,8 +34,15 @@ namespace ProjekPABD
             }
         }
 
-       
-            
-        
+        private void button1_Click(object sender, EventArgs e)
+        {
+            new Form2().Show();
+            this.Close();
+        }
+
+        // TAMBAHKAN FUNGSI INI UNTUK MENGHILANGKAN ERROR
+    
+            }
+        }
     }
 }
