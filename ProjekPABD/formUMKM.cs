@@ -8,43 +8,90 @@ namespace ProjekPABD
 {
     public partial class formUMKM : Form
     {
-        // Ganti Data Source sesuai dengan nama Server SQL kamu
+        // Menyinkronkan DataSource sesuai server lokal terupdate milikmu
         string connectionString = "Data Source=LAPTOP-66MU6CLK\\MAULINAA;Initial Catalog=UMKM_Desa;Integrated Security=True";
 
-        public formUMKM() { InitializeComponent(); }
+        // Deklarasi Komponen Sinkronisasi Data Binding (Poin 4 & 5)
+        private BindingSource bSource = new BindingSource();
+        private DataTable dtUMKM = new DataTable();
+
+        public formUMKM()
+        {
+            InitializeComponent();
+        }
 
         private void formUMKM_Load(object sender, EventArgs e)
         {
-            // TODO: This line of code loads data into the 'uMKM_DesaDataSet.Pemilik' table. You can move, or remove it, as needed.
-            this.pemilikTableAdapter.Fill(this.uMKM_DesaDataSet.Pemilik);
-            // TODO: This line of code loads data into the 'uMKM_DesaDataSet1.UMKM' table. You can move, or remove it, as needed.
-            this.uMKMTableAdapter.Fill(this.uMKM_DesaDataSet1.UMKM);
-            TampilkanData();
-            LoadCombo();
-            IsiKategori();
+            // Load data dasar untuk ComboBox Pemilik terlebih dahulu
+            LoadComboPemilik();
+            IsiKategoriUsaha();
+
+            // Jalankan sinkronisasi komponen arsitektur View dan Data Binding
+            TampilkanDataDenganView();
+            AturBindingKomponen();
+
             dgvUMKM.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            txtID.ReadOnly = true; // ID tidak boleh diubah manual
+            txtID.ReadOnly = true; // ID menggunakan IDENTITY, tidak boleh diubah manual
+            dgvUMKM.ReadOnly = true;
+            dgvUMKM.AllowUserToAddRows = false;
+            dgvUMKM.AllowUserToDeleteRows = false;
         }
 
-        private void TampilkanData()
+        // 1. SELECT DATA: Mengubah query dasar menjadi VIEW (Poin 2)
+        private void TampilkanDataDenganView()
         {
             try
             {
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    string query = "SELECT u.IDUMKM, u.NamaUsaha, u.JenisUsaha, u.AlamatUsaha, u.DeskripsiUsaha, p.NamaPemilik, u.IDPemilik " +
-                                 "FROM UMKM u JOIN Pemilik p ON u.IDPemilik = p.IDPemilik";
-                    SqlDataAdapter sda = new SqlDataAdapter(query, conn);
-                    DataTable dt = new DataTable();
-                    sda.Fill(dt);
-                    dgvUMKM.DataSource = dt;
-                    if (dgvUMKM.Columns["IDPemilik"] != null) dgvUMKM.Columns["IDPemilik"].Visible = false;
+                    // Memanggil objek VIEW 'vw_UMKM_Detail' yang dibuat di database
+                    SqlDataAdapter sda = new SqlDataAdapter("SELECT * FROM vwUMKMPublic", conn);
+
+                    dtUMKM.Clear();
+                    sda.Fill(dtUMKM);
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Error Tampil Data: " + ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error Tampil View: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        private void LoadCombo()
+        // 2. DATA BINDING SINKRONISASI: Memanfaatkan BindingSource & BindingNavigator (Poin 4 & 5)
+        private void AturBindingKomponen()
+        {
+            // Menghubungkan kaitan data berantai ke grid view
+            bSource.DataSource = dtUMKM;
+            dgvUMKM.DataSource = bSource;
+
+            // Mengaitkan struktur ke komponen kontrol navigator visual di form
+            if (bindingNavigator1 != null)
+            {
+                bindingNavigator1.BindingSource = bSource;
+            }
+
+            // Bersihkan sisa ikatan properti data lama mencegah konflik redundansi objek form
+            txtID.DataBindings.Clear();
+            txtNama.DataBindings.Clear();
+            comboBox1.DataBindings.Clear();
+            txtAlamat.DataBindings.Clear();
+            txtDesk.DataBindings.Clear();
+            cmbPemilik.DataBindings.Clear();
+
+            // Menerapkan penalian data otomatis (Data Binding) ke elemen komponen teks/combo visual
+            txtID.DataBindings.Add("Text", bSource, "IDUMKM", true);
+            txtNama.DataBindings.Add("Text", bSource, "NamaUsaha", true);
+            comboBox1.DataBindings.Add("Text", bSource, "JenisUsaha", true);
+            txtAlamat.DataBindings.Add("Text", bSource, "AlamatUsaha", true);
+            txtDesk.DataBindings.Add("Text", bSource, "DeskripsiUsaha", true);
+            cmbPemilik.DataBindings.Add("SelectedValue", bSource, "IDPemilik", true);
+
+            // Sembunyikan kolom IDPemilik agar DataGridView terlihat bersih dan rapi
+            if (dgvUMKM.Columns["IDPemilik"] != null)
+                dgvUMKM.Columns["IDPemilik"].Visible = false;
+        }
+
+        private void LoadComboPemilik()
         {
             try
             {
@@ -61,7 +108,7 @@ namespace ProjekPABD
             catch (Exception ex) { MessageBox.Show("Gagal load data pemilik: " + ex.Message); }
         }
 
-        private void IsiKategori()
+        private void IsiKategoriUsaha()
         {
             comboBox1.Items.Clear();
             comboBox1.Items.Add("Kuliner");
@@ -71,22 +118,25 @@ namespace ProjekPABD
             comboBox1.SelectedIndex = 0;
         }
 
+        // 3. INSERT DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
         private void btnInsert_Click(object sender, EventArgs e)
         {
-            // 1. CEK NAMA USAHA DULU (Sesuai CHK_NamaUsaha di SQL)
-            // Hanya boleh huruf dan spasi
+            // Validasi regex sisi aplikasi (Client-Side Validation)
             if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z ]+$"))
             {
-                MessageBox.Show("Nama Usaha hanya boleh berisi huruf!", "Peringatan");
-                return; // Berhenti di sini, jangan lanjut cek alamat
+                MessageBox.Show("Nama Usaha hanya boleh berisi huruf dan spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
-            // 2. CEK ALAMAT (Sesuai CHK_AlamatUsaha di SQL)
-            // Minimal 5 karakter
-            // Validasi Alamat: Minimal harus ada hurufnya, jangan cuma simbol
             if (!Regex.IsMatch(txtAlamat.Text, @"^[a-zA-Z0-9\s]+$") || txtAlamat.Text.Trim().Length < 5)
             {
-                MessageBox.Show("Alamat minimal 5 karakter dan HANYA boleh berisi huruf, angka, atau spasi! (Jangan gunakan tanda titik, koma, pagar, dll)", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Alamat minimal 5 karakter dan HANYA boleh berisi huruf, angka, atau spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (cmbPemilik.SelectedValue == null)
+            {
+                MessageBox.Show("Pilih Pemilik UMKM terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -94,114 +144,203 @@ namespace ProjekPABD
             {
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    string q = "INSERT INTO UMKM (NamaUsaha, JenisUsaha, AlamatUsaha, DeskripsiUsaha, IDPemilik) VALUES (@n, @j, @a, @d, @idp)";
-                    SqlCommand cmd = new SqlCommand(q, conn);
-                    cmd.Parameters.AddWithValue("@n", txtNama.Text.Trim());
-                    cmd.Parameters.AddWithValue("@j", comboBox1.Text);
-                    cmd.Parameters.AddWithValue("@a", txtAlamat.Text.Trim());
-                    cmd.Parameters.AddWithValue("@d", txtDesk.Text.Trim());
-                    cmd.Parameters.AddWithValue("@idp", cmbPemilik.SelectedValue);
+                    // Memanggil objek STORED PROCEDURE 'sp_InsertUMKM'
+                    using (SqlCommand cmd = new SqlCommand("sp_InsertUMKM", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    TampilkanData();
-                    BersihkanLayar();
-                    MessageBox.Show("Data Berhasil Disimpan!");
+                        // Melemparkan data ke parameter Stored Procedure database
+                        cmd.Parameters.AddWithValue("@NamaUsaha", txtNama.Text.Trim());
+                        cmd.Parameters.AddWithValue("@JenisUsaha", comboBox1.Text);
+                        cmd.Parameters.AddWithValue("@AlamatUsaha", txtAlamat.Text.Trim());
+                        cmd.Parameters.AddWithValue("@DeskripsiUsaha", txtDesk.Text.Trim());
+                        cmd.Parameters.AddWithValue("@IDPemilik", Convert.ToInt32(cmbPemilik.SelectedValue));
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        MessageBox.Show("Data UMKM berhasil disimpan via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        TampilkanDataDenganView();
+                        BersihkanLayar();
+                    }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Simpan: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show("Gagal Simpan via SP: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
+        // 4. UPDATE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
         private void btnUpdate_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(txtID.Text))
             {
-                MessageBox.Show("Pilih data yang akan diubah!"); return;
+                MessageBox.Show("Pilih data UMKM pada tabel yang ingin diubah terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z ]+$"))
+            {
+                MessageBox.Show("Nama Usaha hanya boleh berisi huruf dan spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Regex.IsMatch(txtAlamat.Text, @"^[a-zA-Z0-9\s]+$") || txtAlamat.Text.Trim().Length < 5)
+            {
+                MessageBox.Show("Alamat minimal 5 karakter dan HANYA boleh berisi huruf, angka, atau spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
             try
             {
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    string q = "UPDATE UMKM SET NamaUsaha=@n, JenisUsaha=@j, AlamatUsaha=@a, DeskripsiUsaha=@d, IDPemilik=@idp WHERE IDUMKM=@id";
-                    SqlCommand cmd = new SqlCommand(q, conn);
-                    cmd.Parameters.AddWithValue("@id", txtID.Text);
-                    cmd.Parameters.AddWithValue("@n", txtNama.Text.Trim());
-                    cmd.Parameters.AddWithValue("@j", comboBox1.Text);
-                    cmd.Parameters.AddWithValue("@a", txtAlamat.Text.Trim());
-                    cmd.Parameters.AddWithValue("@d", txtDesk.Text.Trim());
-                    cmd.Parameters.AddWithValue("@idp", cmbPemilik.SelectedValue);
+                    // Memanggil objek STORED PROCEDURE 'sp_UpdateUMKM'
+                    using (SqlCommand cmd = new SqlCommand("sp_UpdateUMKM", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    TampilkanData();
-                    MessageBox.Show("Data Berhasil Diperbarui!");
+                        cmd.Parameters.AddWithValue("@IDUMKM", Convert.ToInt32(txtID.Text));
+                        cmd.Parameters.AddWithValue("@NamaUsaha", txtNama.Text.Trim());
+                        cmd.Parameters.AddWithValue("@JenisUsaha", comboBox1.Text);
+                        cmd.Parameters.AddWithValue("@AlamatUsaha", txtAlamat.Text.Trim());
+                        cmd.Parameters.AddWithValue("@DeskripsiUsaha", txtDesk.Text.Trim());
+                        cmd.Parameters.AddWithValue("@IDPemilik", Convert.ToInt32(cmbPemilik.SelectedValue));
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        MessageBox.Show("Data UMKM berhasil diubah via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        TampilkanDataDenganView();
+                        AturBindingKomponen();
+                    }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Update: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show("Gagal Update via SP: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
+        // 5. DELETE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
         private void btnDelete_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtID.Text)) return;
-            if (MessageBox.Show("Hapus data ini?", "Konfirmasi", MessageBoxButtons.YesNo) == DialogResult.No) return;
+            if (string.IsNullOrEmpty(txtID.Text))
+            {
+                MessageBox.Show("Pilih data UMKM yang ingin dihapus terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (MessageBox.Show("Yakin ingin menghapus data UMKM ini?", "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+                return;
 
             try
             {
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    SqlCommand cmd = new SqlCommand("DELETE FROM UMKM WHERE IDUMKM=@id", conn);
-                    cmd.Parameters.AddWithValue("@id", txtID.Text);
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                    TampilkanData();
-                    BersihkanLayar();
-                    MessageBox.Show("Data Berhasil Dihapus!");
+                    // Memanggil objek STORED PROCEDURE 'sp_DeleteUMKM'
+                    using (SqlCommand cmd = new SqlCommand("sp_DeleteUMKM", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@IDUMKM", Convert.ToInt32(txtID.Text));
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        MessageBox.Show("Data UMKM berhasil dihapus via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        TampilkanDataDenganView();
+                        BersihkanLayar();
+                    }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Hapus: " + ex.Message); }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 547) // Handle error constraint foreign key jika data dipakai tabel Produk
+                {
+                    MessageBox.Show("Gagal Menghapus: Data UMKM ini tidak bisa dihapus karena masih mengikat relasi dengan data Produk.\n\nHapus produk milik UMKM ini terlebih dahulu.",
+                                    "Ketergantungan Relasi Data", MessageBoxButtons.OK, MessageBoxIcon.Stop);
+                }
+                else
+                {
+                    MessageBox.Show("Gagal Hapus (Database Error): " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Gagal Hapus: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
 
+        // 6. SEARCH DATA SECARA AMAN: Menggunakan STORED PROCEDURE Terparameterisasi (Poin 1)
         private void btnSearch_Click(object sender, EventArgs e)
         {
             try
             {
+                // Putus ikatan binding textbox sementara agar tidak crash IndexOutOfRange saat tabel disaring
+                txtID.DataBindings.Clear();
+                txtNama.DataBindings.Clear();
+                comboBox1.DataBindings.Clear();
+                txtAlamat.DataBindings.Clear();
+                txtDesk.DataBindings.Clear();
+                cmbPemilik.DataBindings.Clear();
+
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                    string query = "SELECT u.IDUMKM, u.NamaUsaha, u.JenisUsaha, u.AlamatUsaha, u.DeskripsiUsaha, p.NamaPemilik, u.IDPemilik " +
-                                 "FROM UMKM u JOIN Pemilik p ON u.IDPemilik = p.IDPemilik " +
-                                 "WHERE u.NamaUsaha LIKE @cari";
-                    SqlDataAdapter sda = new SqlDataAdapter(query, conn);
-                    sda.SelectCommand.Parameters.AddWithValue("@cari", "%" + txtCari.Text + "%");
-                    DataTable dt = new DataTable();
-                    sda.Fill(dt);
-                    dgvUMKM.DataSource = dt;
+                    // Memanggil objek STORED PROCEDURE 'sp_SearchUMKM'
+                    using (SqlCommand cmd = new SqlCommand("sp_SearchUMKM", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@Keyword", txtCari.Text.Trim());
+
+                        SqlDataAdapter sda = new SqlDataAdapter(cmd);
+                        dtUMKM.Clear();
+                        sda.Fill(dtUMKM);
+                    }
                 }
+
+                // ==========================================
+                // TAMBAHKAN INI: Pasang kembali ikatannya setelah data baru berhasil disaring!
+                // ==========================================
+                AturBindingKomponen();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            catch (Exception ex) { MessageBox.Show("Error Pencarian: " + ex.Message, "Search Error", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
 
         private void dgvUMKM_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            // Pastikan baris yang diklik adalah baris data valid
+            if (e.RowIndex >= 0 && e.RowIndex < dgvUMKM.Rows.Count)
             {
-                DataGridViewRow row = dgvUMKM.Rows[e.RowIndex];
-                txtID.Text = row.Cells["IDUMKM"].Value.ToString();
-                txtNama.Text = row.Cells["NamaUsaha"].Value.ToString();
-                comboBox1.Text = row.Cells["JenisUsaha"].Value.ToString();
-                txtAlamat.Text = row.Cells["AlamatUsaha"].Value.ToString();
-                txtDesk.Text = row.Cells["DeskripsiUsaha"].Value.ToString();
-                cmbPemilik.SelectedValue = row.Cells["IDPemilik"].Value;
+                // JIKA IKATAN DATA LEPAS (AKIBAT TOMBOL CLEAR), IKAT KEMBALI DI SINI
+                if (txtNama.DataBindings.Count == 0)
+                {
+                    AturBindingKomponen(); // Memanggil fungsi setup binding milikmu
+                }
+
+                // Paksa posisi data binding mengikuti baris yang diklik user
+                bSource.Position = e.RowIndex; // Sesuaikan nama bindingSource kamu
             }
         }
-
-        private void btnClear_Click(object sender, EventArgs e) { BersihkanLayar(); }
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            BersihkanLayar();
+        }
 
         private void BersihkanLayar()
         {
-            txtID.Clear(); txtNama.Clear(); txtAlamat.Clear(); txtDesk.Clear(); txtCari.Clear();
-            if (comboBox1.Items.Count > 0) comboBox1.SelectedIndex = 0;
-            TampilkanData();
+            // 1. Putus ikatan binding sementara agar TextBox bebas dari kekangan database
+            txtID.DataBindings.Clear();
+            txtNama.DataBindings.Clear();
+            comboBox1.DataBindings.Clear(); // Sesuaikan nama comboBox Jenis Usaha kamu
+            txtAlamat.DataBindings.Clear();
+            txtDesk.DataBindings.Clear();
+            cmbPemilik.DataBindings.Clear();
+
+            // 2. Sekarang kosongkan isinya secara paksa (pasti berhasil karena ikatannya sudah lepas)
+            txtID.Text = "";
+            txtNama.Text = "";
+            comboBox1.SelectedIndex = -1; // Mengosongkan pilihan ComboBox Jenis Usaha
+            txtAlamat.Text = "";
+            txtDesk.Text = "";
+            cmbPemilik.SelectedIndex = -1; // Mengosongkan pilihan ComboBox Pemilik
+
+            // 3. Kembalikan fokus kursor ke TextBox Nama Usaha
+            txtNama.Focus();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -212,7 +351,7 @@ namespace ProjekPABD
 
         private void bindingNavigator1_RefreshItems(object sender, EventArgs e)
         {
-
+            // Diabaikan otomatis
         }
     }
 }

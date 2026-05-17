@@ -8,7 +8,7 @@ namespace ProjekPABD
 {
     public partial class formProduk : Form
     {
-        // Gunakan connection string yang sama dengan form lainnya
+        // Connection string sesuai milikmu
         SqlConnection conn = new SqlConnection("Data Source = LAPTOP-66MU6CLK\\MAULINAA; Initial Catalog=UMKM_Desa;Integrated Security=True");
 
         public formProduk()
@@ -18,204 +18,238 @@ namespace ProjekPABD
 
         private void formProduk_Load(object sender, EventArgs e)
         {
-            // TODO: This line of code loads data into the 'uMKM_DesaDataSet1.UMKM' table. You can move, or remove it, as needed.
-            this.uMKMTableAdapter.Fill(this.uMKM_DesaDataSet1.UMKM);
-            // TODO: This line of code loads data into the 'uMKM_DesaDataSet2.Produk' table. You can move, or remove it, as needed.
-            this.produkTableAdapter.Fill(this.uMKM_DesaDataSet2.Produk);
+            // Proteksi Awal: Kunci grid agar aman tidak bisa diketik asal oleh user
+            dgvProduk.ReadOnly = true;
+            dgvProduk.AllowUserToAddRows = false;
+            dgvProduk.AllowUserToDeleteRows = false;
+
+            // 1. Mengisi ComboBox otomatis lewat dataset bawaan desainer kamu
+            try
+            {
+                this.uMKMTableAdapter.Fill(this.uMKM_DesaDataSet1.UMKM);
+            }
+            catch (Exception ex) { MessageBox.Show("Gagal Load Data UMKM Ke Dropdown: " + ex.Message); }
+
+            // 2. Tampilkan data utama produk menggunakan VIEW
             TampilkanData();
-            LoadComboUMKM(); // Mengisi dropdown Pilih UMKM
         }
 
-        // Tampilkan Data Produk dengan JOIN ke tabel UMKM
+        // Tampilkan data produk memanfaatkan VIEW 'vwProdukPublic'
         private void TampilkanData()
         {
             try
             {
                 if (conn.State == ConnectionState.Closed) conn.Open();
-                string query = @"SELECT p.IDProduk, p.NamaProduk, p.Harga, p.Stok, u.NamaUsaha 
-                                 FROM Produk p 
-                                 JOIN UMKM u ON p.IDUMKM = u.IDUMKM";
+
+                string query = "SELECT * FROM vwProdukPublic";
                 SqlDataAdapter sda = new SqlDataAdapter(query, conn);
                 DataTable dt = new DataTable();
                 sda.Fill(dt);
-                dgvProduk.DataSource = dt;
+
+                // Masukkan data hasil VIEW ke produkBindingSource milik desainer
+                produkBindingSource.DataSource = dt;
+                dgvProduk.DataSource = produkBindingSource;
+
                 conn.Close();
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Tampil: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show("Gagal Memuat Data View: " + ex.Message); }
         }
 
-        // Mengambil daftar UMKM untuk ComboBox
-        private void LoadComboUMKM()
+        // Sinkronisasi ulang binding komponen setelah layar dibersihkan
+        private void AturBindingKomponen()
         {
-            try
-            {
-                if (conn.State == ConnectionState.Closed) conn.Open();
-                SqlCommand cmd = new SqlCommand("SELECT IDUMKM, NamaUsaha FROM UMKM", conn);
-                SqlDataAdapter sda = new SqlDataAdapter(cmd);
-                DataTable dt = new DataTable();
-                sda.Fill(dt);
+            txtID.DataBindings.Clear();
+            txtNama.DataBindings.Clear();
+            txtHarga.DataBindings.Clear();
+            txtStok.DataBindings.Clear();
+            cmbUMKM.DataBindings.Clear();
 
-                cmbUMKM.DataSource = dt;
-                cmbUMKM.DisplayMember = "NamaUsaha"; // Nama UMKM yang tampil
-                cmbUMKM.ValueMember = "IDUMKM";      // ID yang disimpan ke DB
-                conn.Close();
-            }
-            catch (Exception ex) { MessageBox.Show("Gagal Load UMKM: " + ex.Message); conn.Close(); }
+            // Pasang kembali sesuai konfigurasi awal desainer kamu
+            txtID.DataBindings.Add("Text", produkBindingSource, "IDProduk", true);
+            txtNama.DataBindings.Add("Text", produkBindingSource, "NamaProduk", true);
+            txtHarga.DataBindings.Add("Text", produkBindingSource, "Harga", true);
+            txtStok.DataBindings.Add("Text", produkBindingSource, "Stok", true);
+            cmbUMKM.DataBindings.Add("SelectedValue", produkBindingSource, "IDUMKM", true);
         }
 
-        // INSERT (Tombol Simpan Produk)
+        // INSERT (Dijalankan saat tombol 'btntambah' diklik)
         private void btnInsert_Click(object sender, EventArgs e)
         {
-            // 1. Cek Nama Produk (Mencegah error SQL Constraint)
-            // Regex ini memastikan hanya huruf dan spasi yang boleh masuk
-            if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z ]+$"))
+            if (!Regex.IsMatch(txtNama.Text.Trim(), @"^[a-zA-Z0-9 ]+$"))
             {
-                MessageBox.Show("Nama Produk hanya boleh berisi huruf dan spasi!", "Peringatan");
+                MessageBox.Show("Nama Produk hanya boleh berisi huruf, angka, dan spasi!", "Peringatan");
                 return;
             }
 
-            // 1. Validasi HARGA
             int harga;
-            if (!int.TryParse(txtHarga.Text, out harga))
+            if (!int.TryParse(txtHarga.Text, out harga) || harga < 0)
             {
-                MessageBox.Show("Harga harus diisi dengan angka saja!", "Peringatan");
+                MessageBox.Show("Harga harus diisi dengan angka positif!", "Peringatan");
                 return;
             }
 
-            // 2. Validasi STOK
             int stok;
-            if (!int.TryParse(txtStok.Text, out stok))
+            if (!int.TryParse(txtStok.Text, out stok) || stok < 0)
             {
-                MessageBox.Show("Stok harus diisi dengan angka saja!", "Peringatan");
+                MessageBox.Show("Stok harus diisi dengan angka positif!", "Peringatan");
                 return;
             }
 
-            // 3. Jika lolos semua, baru masuk ke blok try-catch SQL
+            if (cmbUMKM.SelectedValue == null)
+            {
+                MessageBox.Show("Silakan pilih UMKM terlebih dahulu!", "Peringatan");
+                return;
+            }
+
             try
             {
                 if (conn.State == ConnectionState.Closed) conn.Open();
 
-                // Query INSERT (IDProduk tidak perlu dimasukkan karena Auto-Increment/Identity)
-                string query = "INSERT INTO Produk (NamaProduk, Harga, Stok, IDUMKM) VALUES (@nama, @harga, @stok, @idumkm)";
+                using (SqlCommand cmd = new SqlCommand("sp_InsertProduk", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@NamaProduk", txtNama.Text.Trim());
+                    cmd.Parameters.AddWithValue("@Harga", harga);
+                    cmd.Parameters.AddWithValue("@Stok", stok);
+                    cmd.Parameters.AddWithValue("@IDUMKM", cmbUMKM.SelectedValue);
 
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@nama", txtNama.Text);
-                cmd.Parameters.AddWithValue("@harga", harga); // Mengambil variabel hasil TryParse
-                cmd.Parameters.AddWithValue("@stok", stok);   // Mengambil variabel hasil TryParse
-                cmd.Parameters.AddWithValue("@idumkm", cmbUMKM.SelectedValue); // Mengambil ID dari ComboBox
-
-                cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
+                }
                 conn.Close();
 
-                MessageBox.Show("Data Produk Berhasil Disimpan!", "Sukses");
-                TampilkanData(); // Refresh tabel
-                BersihkanLayar(); // Kosongkan form
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Gagal simpan: " + ex.Message);
-                if (conn.State == ConnectionState.Open) conn.Close();
-            }
-        }
-
-        // UPDATE (Tombol Ubah Produk)
-        private void btnUpdate_Click(object sender, EventArgs e)
-        {
-            // Asumsi ada TextBox tersembunyi atau label untuk simpan IDProduk bernama txtIDProduk
-            if (string.IsNullOrEmpty(txtID.Text)) return;
-            try
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(@"UPDATE Produk SET NamaProduk=@nama, Harga=@harga, 
-                                                Stok=@stok, IDUMKM=@idumkm WHERE IDProduk=@id", conn);
-                cmd.Parameters.AddWithValue("@id", txtID.Text);
-                cmd.Parameters.AddWithValue("@nama", txtNama.Text);
-                cmd.Parameters.AddWithValue("@harga", txtHarga.Text);
-                cmd.Parameters.AddWithValue("@stok", txtStok.Text);
-                cmd.Parameters.AddWithValue("@idumkm", cmbUMKM.SelectedValue);
-
-                cmd.ExecuteNonQuery();
-                conn.Close();
-                MessageBox.Show("Data Produk Berhasil Diperbarui!");
-                TampilkanData();
-            }
-            catch (Exception ex) { MessageBox.Show("Gagal Update: " + ex.Message); conn.Close(); }
-        }
-
-        // DELETE (Tombol Hapus Produk)
-        private void btnDelete_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(txtID.Text)) return;
-            try
-            {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand("DELETE FROM Produk WHERE IDProduk=@id", conn);
-                cmd.Parameters.AddWithValue("@id", txtID.Text);
-                cmd.ExecuteNonQuery();
-                conn.Close();
-                MessageBox.Show("Produk Berhasil Dihapus!");
+                MessageBox.Show("Data Produk Berhasil Disimpan!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 TampilkanData();
                 BersihkanLayar();
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Hapus: " + ex.Message); conn.Close(); }
+            catch (Exception ex) { MessageBox.Show("Gagal Simpan SP: " + ex.Message); if (conn.State == ConnectionState.Open) conn.Close(); }
         }
 
+        // UPDATE (Dijalankan saat tombol 'btnUbah' diklik)
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtID.Text))
+            {
+                MessageBox.Show("Pilih data produk yang ingin diubah pada tabel!", "Peringatan");
+                return;
+            }
+
+            int harga, stok;
+            if (!int.TryParse(txtHarga.Text, out harga) || !int.TryParse(txtStok.Text, out stok))
+            {
+                MessageBox.Show("Harga dan Stok harus berupa angka valid!", "Peringatan");
+                return;
+            }
+
+            try
+            {
+                if (conn.State == ConnectionState.Closed) conn.Open();
+
+                using (SqlCommand cmd = new SqlCommand("sp_UpdateProduk", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@IDProduk", Convert.ToInt32(txtID.Text));
+                    cmd.Parameters.AddWithValue("@NamaProduk", txtNama.Text.Trim());
+                    cmd.Parameters.AddWithValue("@Harga", harga);
+                    cmd.Parameters.AddWithValue("@Stok", stok);
+                    cmd.Parameters.AddWithValue("@IDUMKM", cmbUMKM.SelectedValue);
+
+                    cmd.ExecuteNonQuery();
+                }
+                conn.Close();
+
+                MessageBox.Show("Data Produk Berhasil Diubah!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                TampilkanData();
+            }
+            catch (Exception ex) { MessageBox.Show("Gagal Update SP: " + ex.Message); if (conn.State == ConnectionState.Open) conn.Close(); }
+        }
+
+        // DELETE (Dijalankan saat tombol 'btnHapus' diklik)
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtID.Text))
+            {
+                MessageBox.Show("Pilih data produk yang ingin dihapus pada tabel!", "Peringatan");
+                return;
+            }
+
+            if (MessageBox.Show("Apakah Anda yakin ingin menghapus produk ini?", "Konfirmasi Hapus", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                try
+                {
+                    if (conn.State == ConnectionState.Closed) conn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_DeleteProduk", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@IDProduk", Convert.ToInt32(txtID.Text));
+
+                        cmd.ExecuteNonQuery();
+                    }
+                    conn.Close();
+
+                    MessageBox.Show("Produk Berhasil Dihapus!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    TampilkanData();
+                    BersihkanLayar();
+                }
+                catch (Exception ex) { MessageBox.Show("Gagal Hapus SP: " + ex.Message); if (conn.State == ConnectionState.Open) conn.Close(); }
+            }
+        }
+
+        // Berfungsi menangani perpindahan baris di GridView (Terikat ke event CellEnter di desainer)
         private void dgvProduk_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
+            if (e.RowIndex >= 0 && e.RowIndex < dgvProduk.Rows.Count)
             {
-                DataGridViewRow row = dgvProduk.Rows[e.RowIndex];
-                // Sesuaikan nama kolom GridView dengan query SELECT di atas
-                txtID.Text = row.Cells["IDProduk"].Value.ToString();
-                txtNama.Text = row.Cells["NamaProduk"].Value.ToString();
-                txtHarga.Text = row.Cells["Harga"].Value.ToString();
-                txtStok.Text = row.Cells["Stok"].Value.ToString();
-                cmbUMKM.Text = row.Cells["NamaUsaha"].Value.ToString();
+                // Jika ikatan data terputus akibat tombol Clear, sambungkan lagi di sini
+                if (txtNama.DataBindings.Count == 0)
+                {
+                    AturBindingKomponen();
+                }
+
+                // Ubah posisi pointer BindingSource agar Textbox ikut ter-update otomatis
+                produkBindingSource.Position = e.RowIndex;
             }
         }
 
         private void BersihkanLayar()
         {
+            // Lepas sementara ikatan data agar inputan teks murni kosong tanpa error binding
+            txtID.DataBindings.Clear();
+            txtNama.DataBindings.Clear();
+            txtHarga.DataBindings.Clear();
+            txtStok.DataBindings.Clear();
+            cmbUMKM.DataBindings.Clear();
+
+            // Kosongkan manual
             txtID.Clear();
             txtNama.Clear();
             txtHarga.Clear();
             txtStok.Clear();
             cmbUMKM.SelectedIndex = -1;
+
+            txtNama.Focus();
         }
 
-        private void btnClear_Click(object sender, EventArgs e) { BersihkanLayar(); }
-
-        private void btnKembali_Click(object sender, EventArgs e)
+        private void btnClear_Click(object sender, EventArgs e)
         {
-            new Form2().Show();
-            this.Close();
+            BersihkanLayar();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            // Menampilkan kembali Form Menu Utama (Form2)
+            // Tombol kembali ke Menu Utama (Form2)
             Form2 menuUtama = new Form2();
             menuUtama.Show();
-
-            // Menutup form yang sekarang sedang dibuka
             this.Close();
         }
 
         private void dgvProduk_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex >= 0)
-            {
-                // Ambil baris yang diklik
-                DataGridViewRow row = dgvProduk.Rows[e.RowIndex];
+            // Sengaja dikosongkan karena logika klik datanya sudah diurus otomatis oleh CellEnter (dgvProduk_CellClick)
+        }
 
-                // Pindahkan data dari kolom tabel ke TextBox di atas
-                // Sesuaikan nama kolom "IDUMKM", "NamaUsaha", dll dengan nama di database kamu
-                txtID.Text = row.Cells[0].Value.ToString();
-                txtNama.Text = row.Cells[1].Value.ToString();
-                txtHarga.Text = row.Cells[2].Value.ToString();
-                txtStok.Text = row.Cells[3].Value.ToString();
-                cmbUMKM.Text = row.Cells[4].Value.ToString();
-            }
+        private void bindingNavigator1_RefreshItems(object sender, EventArgs e)
+        {
         }
     }
 }

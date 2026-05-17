@@ -7,7 +7,7 @@ namespace ProjekPABD
 {
     public partial class formLaporan : Form
     {
-        string connectionString = "Data Source=AYUNINGTYAS\\AYUNINGTYAS;Initial Catalog=UMKM_Desa;Integrated Security=True";
+        string connectionString = "Data Source=LAPTOP-66MU6CLK\\MAULINAA;Initial Catalog=UMKM_Desa;Integrated Security=True";
 
         public formLaporan() { InitializeComponent(); }
 
