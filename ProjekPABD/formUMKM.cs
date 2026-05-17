@@ -339,6 +339,15 @@ namespace ProjekPABD
         }
 
         // PERBAIKAN: Mengembalikan Data Binding penuh setelah diacak-acak oleh tombol Test Injection
-        
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            // Kembalikan semua data ke kondisi normal asal dari SQL Server
+            TampilkanDataDenganView();
+            AturBindingKomponen();
+            HitungTotal();
+        }
+
+        // PERBAIKAN: Clear memanggil pengosongan komponen textbox secara nyata
+ 
         }
 }
