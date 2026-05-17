@@ -31,6 +31,6 @@ namespace ProjekPABD
             }
         }
 
-     
+        private void btnKeUMKM_Click(object sender, EventArgs e) { new formUMKM().Show(); this.Hide(); }
     }
 }
