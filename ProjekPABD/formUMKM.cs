@@ -170,7 +170,56 @@ namespace ProjekPABD
         }
 
         // 4. UPDATE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
-        
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtID.Text))
+            {
+                MessageBox.Show("Pilih data UMKM pada tabel yang ingin diubah terlebih dahulu!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z ]+$"))
+            {
+                MessageBox.Show("Nama Usaha hanya boleh berisi huruf dan spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Regex.IsMatch(txtAlamat.Text, @"^[a-zA-Z0-9\s]+$") || txtAlamat.Text.Trim().Length < 5)
+            {
+                MessageBox.Show("Alamat minimal 5 karakter dan HANYA boleh berisi huruf, angka, atau spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    // Memanggil objek STORED PROCEDURE 'sp_UpdateUMKM'
+                    using (SqlCommand cmd = new SqlCommand("sp_UpdateUMKM", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@IDUMKM", Convert.ToInt32(txtID.Text));
+                        cmd.Parameters.AddWithValue("@NamaUsaha", txtNama.Text.Trim());
+                        cmd.Parameters.AddWithValue("@JenisUsaha", comboBox1.Text);
+                        cmd.Parameters.AddWithValue("@AlamatUsaha", txtAlamat.Text.Trim());
+                        cmd.Parameters.AddWithValue("@DeskripsiUsaha", txtDesk.Text.Trim());
+                        cmd.Parameters.AddWithValue("@IDPemilik", Convert.ToInt32(cmbPemilik.SelectedValue));
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        MessageBox.Show("Data UMKM berhasil diubah via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        TampilkanDataDenganView();
+                        AturBindingKomponen();
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Gagal Update via SP: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error); }
         }
+
+        // 5. DELETE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
+        
     }
 }
