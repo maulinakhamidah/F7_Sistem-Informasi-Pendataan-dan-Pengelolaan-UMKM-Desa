@@ -53,5 +53,33 @@ namespace ProjekPABD
 
         // 2. DATA BINDING SINKRONISASI: Memanfaatkan BindingSource & BindingNavigator (Poin 4 & 5)
         // 2. DATA BINDING SINKRONISASI: Memanfaatkan BindingSource & BindingNavigator
+        private void AturBindingKomponen()
+        {
+            // Sinkronisasikan datasource utama ke binding source bawaan designer
+            pemilikBindingSource.DataSource = dtPemilik;
+            dgvPemilik.DataSource = pemilikBindingSource;
+
+            // Kaitkan ke komponen navigator visual di form
+            if (bindingNavigator1 != null)
+            {
+                bindingNavigator1.BindingSource = pemilikBindingSource;
+            }
+
+            // Bersihkan sisa ikatan properti data lama mencegah konflik redundansi
+            txtID.DataBindings.Clear();
+            txtNama.DataBindings.Clear();
+            txtAlamat.DataBindings.Clear();
+            txtNomor.DataBindings.Clear();
+
+            // Menerapkan penalian data otomatis (Data Binding) yang benar dan akurat
+            txtID.DataBindings.Add("Text", pemilikBindingSource, "IDPemilik", true);
+            txtNama.DataBindings.Add("Text", pemilikBindingSource, "NamaPemilik", true); // <-- PERBAIKAN: Diubah ke NamaPemilik
+            txtAlamat.DataBindings.Add("Text", pemilikBindingSource, "AlamatPemilik", true);
+            txtNomor.DataBindings.Add("Text", pemilikBindingSource, "NoKontak", true);
+        }
+
+        // Event pendeteksi klik pada sel DataGridView untuk menyamakan posisi data binding
+        
+        }
     }
 }
