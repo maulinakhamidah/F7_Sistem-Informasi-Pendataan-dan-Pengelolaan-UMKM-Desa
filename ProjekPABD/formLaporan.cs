@@ -41,7 +41,16 @@ namespace ProjekPABD
         }
 
         // TAMBAHKAN FUNGSI INI UNTUK MENGHILANGKAN ERROR
-    
+        private void button2_Click(object sender, EventArgs e)
+        {
+            // Menampilkan pesan konfirmasi logout
+            DialogResult dr = MessageBox.Show("Apakah anda yakin ingin logout?", "Konfirmasi", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (dr == DialogResult.Yes)
+            {
+                // Ganti 'FormLogin' dengan nama form login kamu yang sebenarnya
+                // Jika form login kamu bernama Form1, gunakan new Form1().Show();
+                new Form1().Show();
+                this.Close();
             }
         }
     }
