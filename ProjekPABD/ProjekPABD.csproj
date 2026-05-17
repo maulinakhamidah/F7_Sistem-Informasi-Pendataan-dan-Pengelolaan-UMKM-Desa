@@ -91,6 +91,21 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UMKM_DesaDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UMKM_DesaDataSet.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="UMKM_DesaDataSet1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UMKM_DesaDataSet1.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="UMKM_DesaDataSet2.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UMKM_DesaDataSet2.xsd</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="design3.resx">
       <DependentUpon>design3.cs</DependentUpon>
     </EmbeddedResource>
@@ -131,6 +146,39 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="UMKM_DesaDataSet.xsc">
+      <DependentUpon>UMKM_DesaDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="UMKM_DesaDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>UMKM_DesaDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="UMKM_DesaDataSet.xss">
+      <DependentUpon>UMKM_DesaDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="UMKM_DesaDataSet1.xsc">
+      <DependentUpon>UMKM_DesaDataSet1.xsd</DependentUpon>
+    </None>
+    <None Include="UMKM_DesaDataSet1.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>UMKM_DesaDataSet1.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="UMKM_DesaDataSet1.xss">
+      <DependentUpon>UMKM_DesaDataSet1.xsd</DependentUpon>
+    </None>
+    <None Include="UMKM_DesaDataSet2.xsc">
+      <DependentUpon>UMKM_DesaDataSet2.xsd</DependentUpon>
+    </None>
+    <None Include="UMKM_DesaDataSet2.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>UMKM_DesaDataSet2.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="UMKM_DesaDataSet2.xss">
+      <DependentUpon>UMKM_DesaDataSet2.xsd</DependentUpon>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -140,6 +188,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\umkm.jpeg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\WhatsApp_Image_2026-05-14_at_02.01.59-removebg-preview %281%29.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

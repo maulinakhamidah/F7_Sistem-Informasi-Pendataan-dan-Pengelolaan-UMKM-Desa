@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace ProjekPABD
@@ -8,7 +9,7 @@ namespace ProjekPABD
     public partial class formProduk : Form
     {
         // Gunakan connection string yang sama dengan form lainnya
-        SqlConnection conn = new SqlConnection("Data Source= LAPTOP-66MU6CLK\\MAULINAA;Initial Catalog=UMKM_Desa;Integrated Security=True");
+        SqlConnection conn = new SqlConnection("Data Source = LAPTOP-66MU6CLK\\MAULINAA; Initial Catalog=UMKM_Desa;Integrated Security=True");
 
         public formProduk()
         {
@@ -17,6 +18,10 @@ namespace ProjekPABD
 
         private void formProduk_Load(object sender, EventArgs e)
         {
+            // TODO: This line of code loads data into the 'uMKM_DesaDataSet1.UMKM' table. You can move, or remove it, as needed.
+            this.uMKMTableAdapter.Fill(this.uMKM_DesaDataSet1.UMKM);
+            // TODO: This line of code loads data into the 'uMKM_DesaDataSet2.Produk' table. You can move, or remove it, as needed.
+            this.produkTableAdapter.Fill(this.uMKM_DesaDataSet2.Produk);
             TampilkanData();
             LoadComboUMKM(); // Mengisi dropdown Pilih UMKM
         }
@@ -61,23 +66,56 @@ namespace ProjekPABD
         // INSERT (Tombol Simpan Produk)
         private void btnInsert_Click(object sender, EventArgs e)
         {
+            // 1. Cek Nama Produk (Mencegah error SQL Constraint)
+            // Regex ini memastikan hanya huruf dan spasi yang boleh masuk
+            if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z ]+$"))
+            {
+                MessageBox.Show("Nama Produk hanya boleh berisi huruf dan spasi!", "Peringatan");
+                return;
+            }
+
+            // 1. Validasi HARGA
+            int harga;
+            if (!int.TryParse(txtHarga.Text, out harga))
+            {
+                MessageBox.Show("Harga harus diisi dengan angka saja!", "Peringatan");
+                return;
+            }
+
+            // 2. Validasi STOK
+            int stok;
+            if (!int.TryParse(txtStok.Text, out stok))
+            {
+                MessageBox.Show("Stok harus diisi dengan angka saja!", "Peringatan");
+                return;
+            }
+
+            // 3. Jika lolos semua, baru masuk ke blok try-catch SQL
             try
             {
-                conn.Open();
-                SqlCommand cmd = new SqlCommand(@"INSERT INTO Produk (NamaProduk, Harga, Stok, IDUMKM) 
-                                                VALUES (@nama, @harga, @stok, @idumkm)", conn);
+                if (conn.State == ConnectionState.Closed) conn.Open();
+
+                // Query INSERT (IDProduk tidak perlu dimasukkan karena Auto-Increment/Identity)
+                string query = "INSERT INTO Produk (NamaProduk, Harga, Stok, IDUMKM) VALUES (@nama, @harga, @stok, @idumkm)";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@nama", txtNama.Text);
-                cmd.Parameters.AddWithValue("@harga", txtHarga.Text);
-                cmd.Parameters.AddWithValue("@stok", txtStok.Text);
-                cmd.Parameters.AddWithValue("@idumkm", cmbUMKM.SelectedValue);
+                cmd.Parameters.AddWithValue("@harga", harga); // Mengambil variabel hasil TryParse
+                cmd.Parameters.AddWithValue("@stok", stok);   // Mengambil variabel hasil TryParse
+                cmd.Parameters.AddWithValue("@idumkm", cmbUMKM.SelectedValue); // Mengambil ID dari ComboBox
 
                 cmd.ExecuteNonQuery();
                 conn.Close();
-                MessageBox.Show("Produk Berhasil Ditambahkan!");
-                TampilkanData();
-                BersihkanLayar();
+
+                MessageBox.Show("Data Produk Berhasil Disimpan!", "Sukses");
+                TampilkanData(); // Refresh tabel
+                BersihkanLayar(); // Kosongkan form
             }
-            catch (Exception ex) { MessageBox.Show("Gagal Simpan: " + ex.Message); conn.Close(); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal simpan: " + ex.Message);
+                if (conn.State == ConnectionState.Open) conn.Close();
+            }
         }
 
         // UPDATE (Tombol Ubah Produk)
@@ -172,11 +210,11 @@ namespace ProjekPABD
 
                 // Pindahkan data dari kolom tabel ke TextBox di atas
                 // Sesuaikan nama kolom "IDUMKM", "NamaUsaha", dll dengan nama di database kamu
-                txtID.Text = row.Cells["IDUMKM"].Value.ToString();
-                txtNama.Text = row.Cells["NamaUsaha"].Value.ToString();
-                txtHarga.Text = row.Cells["JenisUsaha"].Value.ToString();
-                txtStok.Text = row.Cells["AlamatUsaha"].Value.ToString();
-                cmbUMKM.Text = row.Cells["DeskripsiUsaha"].Value.ToString();
+                txtID.Text = row.Cells[0].Value.ToString();
+                txtNama.Text = row.Cells[1].Value.ToString();
+                txtHarga.Text = row.Cells[2].Value.ToString();
+                txtStok.Text = row.Cells[3].Value.ToString();
+                cmbUMKM.Text = row.Cells[4].Value.ToString();
             }
         }
     }

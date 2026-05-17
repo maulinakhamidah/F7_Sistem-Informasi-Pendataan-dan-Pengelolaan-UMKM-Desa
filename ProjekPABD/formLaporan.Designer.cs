@@ -39,30 +39,31 @@
             // label1
             // 
             this.label1.Font = new System.Drawing.Font("Segoe UI Black", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Italic))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(27, 60);
+            this.label1.Location = new System.Drawing.Point(120, 101);
             this.label1.Name = "label1";
             this.label1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.label1.Size = new System.Drawing.Size(761, 37);
+            this.label1.Size = new System.Drawing.Size(856, 46);
             this.label1.TabIndex = 0;
             this.label1.Text = "Laporan Sistem Informasi Pendataan dan Pengelolaan UMKM Desa";
             this.label1.TextAlign = System.Drawing.ContentAlignment.TopCenter;
-            // BARIS YANG ERROR (label1.Click) SUDAH DIHAPUS DI SINI
             // 
             // dgvLaporan
             // 
             this.dgvLaporan.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvLaporan.Location = new System.Drawing.Point(12, 130);
+            this.dgvLaporan.Location = new System.Drawing.Point(113, 187);
+            this.dgvLaporan.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.dgvLaporan.Name = "dgvLaporan";
             this.dgvLaporan.RowHeadersWidth = 51;
             this.dgvLaporan.RowTemplate.Height = 24;
-            this.dgvLaporan.Size = new System.Drawing.Size(776, 210); // Diperlebar agar tidak polos
+            this.dgvLaporan.Size = new System.Drawing.Size(873, 262);
             this.dgvLaporan.TabIndex = 1;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 360);
+            this.button1.Location = new System.Drawing.Point(113, 475);
+            this.button1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(158, 30);
+            this.button1.Size = new System.Drawing.Size(178, 38);
             this.button1.TabIndex = 2;
             this.button1.Text = "<- Kembali ke Menu";
             this.button1.UseVisualStyleBackColor = true;
@@ -70,9 +71,10 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(713, 360);
+            this.button2.Location = new System.Drawing.Point(901, 475);
+            this.button2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 30);
+            this.button2.Size = new System.Drawing.Size(84, 38);
             this.button2.TabIndex = 3;
             this.button2.Text = "Logout";
             this.button2.UseVisualStyleBackColor = true;
@@ -80,15 +82,16 @@
             // 
             // formLaporan
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(1147, 700);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.dgvLaporan);
             this.Controls.Add(this.label1);
+            this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "formLaporan";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen; // Muncul di tengah
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Laporan Terintegrasi UMKM";
             this.Load += new System.EventHandler(this.formLaporan_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dgvLaporan)).EndInit();

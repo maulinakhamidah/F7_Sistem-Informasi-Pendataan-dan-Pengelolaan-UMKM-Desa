@@ -79,5 +79,15 @@ namespace ProjekPABD.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap WhatsApp_Image_2026_05_14_at_02_01_59_removebg_preview__1_ {
+            get {
+                object obj = ResourceManager.GetObject("WhatsApp_Image_2026-05-14_at_02.01.59-removebg-preview (1)", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }
