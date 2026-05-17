@@ -164,6 +164,53 @@ namespace ProjekPABD
         }
 
         // 4. UPDATE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
-        
+        private void btnUbah_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(txtID.Text)) { MessageBox.Show("Pilih data yang ingin diubah!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning); return; }
+
+            if (!Regex.IsMatch(txtNama.Text, @"^[a-zA-Z\s]+$"))
+            {
+                MessageBox.Show("Nama hanya boleh huruf!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Regex.IsMatch(txtAlamat.Text, @"^[a-zA-Z0-9\s]+$") || txtAlamat.Text.Trim().Length < 5)
+            {
+                MessageBox.Show("Alamat minimal 5 karakter dan HANYA boleh berisi huruf, angka, atau spasi!", "Peringatan", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    // Memanggil objek STORED PROCEDURE 'sp_UpdatePemilik'
+                    using (SqlCommand cmd = new SqlCommand("sp_UpdatePemilik", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.AddWithValue("@ID", Convert.ToInt32(txtID.Text));
+                        cmd.Parameters.AddWithValue("@Nama", txtNama.Text.Trim());
+                        cmd.Parameters.AddWithValue("@Alamat", txtAlamat.Text.Trim());
+                        cmd.Parameters.AddWithValue("@NoKontak", txtNomor.Text.Trim());
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+
+                        MessageBox.Show("Data berhasil diubah via Stored Procedure!", "Sukses", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        TampilkanDataDenganView();
+                        BersihkanLayar();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Gagal Mengubah via SP: " + ex.Message, "Error Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // 5. DELETE DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
+
     }
 }
