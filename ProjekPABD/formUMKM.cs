@@ -91,7 +91,34 @@ namespace ProjekPABD
                 dgvUMKM.Columns["IDPemilik"].Visible = false;
         }
 
+        private void LoadComboPemilik()
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    SqlDataAdapter sda = new SqlDataAdapter("SELECT IDPemilik, NamaPemilik FROM Pemilik", conn);
+                    DataTable dt = new DataTable();
+                    sda.Fill(dt);
+                    cmbPemilik.DataSource = dt;
+                    cmbPemilik.DisplayMember = "NamaPemilik";
+                    cmbPemilik.ValueMember = "IDPemilik";
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Gagal load data pemilik: " + ex.Message); }
+        }
+
+        private void IsiKategoriUsaha()
+        {
+            comboBox1.Items.Clear();
+            comboBox1.Items.Add("Kuliner");
+            comboBox1.Items.Add("Kerajinan");
+            comboBox1.Items.Add("Perdagangan");
+            comboBox1.Items.Add("Jasa");
+            comboBox1.SelectedIndex = 0;
+        }
+
+        // 3. INSERT DATA: Memanfaatkan STORED PROCEDURE (Poin 1)
        
-        
     }
 }
