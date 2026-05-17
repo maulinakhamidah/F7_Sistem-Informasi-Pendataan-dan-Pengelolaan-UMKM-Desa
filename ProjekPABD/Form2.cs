@@ -35,6 +35,6 @@ namespace ProjekPABD
         private void btnPemilik_Click(object sender, EventArgs e) { new FormPemilik().Show(); this.Hide(); }
         private void btnKeProduk_Click(object sender, EventArgs e) { new formProduk().Show(); this.Hide(); }
         private void button2_Click(object sender, EventArgs e) { new formLaporan().Show(); this.Hide(); }
-        
+        private void btnLogout_Click(object sender, EventArgs e) { new Form1().Show(); this.Close(); }
     }
 }
