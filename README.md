@@ -86,6 +86,26 @@
      - Delete
        - <img width="1201" height="602" alt="image" src="https://github.com/user-attachments/assets/57c8d392-afc8-4e33-8601-410285367c9d" />
 
+6. Test Injection
+7. Reset 
+
+# Laporan Skenario Uji Coba SQL Injection - UCP 2 PABD
+
+## 1. Celah Keamanan (Vulnerability)
+Celah keamanan diterapkan pada fitur pencarian nama pemilik (`btnTestInjection_Click`). Program menggunakan teknik penggabungan string (string concatenation) langsung dari input TextBox ke query SQL tanpa adanya filter/parameterisasi:
+string query = "SELECT * FROM Pemilik WHERE NamaPemilik = '" + txtNama.Text + "'";
+
+## 2. Skenario Serangan (Attack Scenario)
+* Target Eksekusi: Menampilkan seluruh data pemilik tanpa perlu mengetahui nama yang valid.
+* Input yang Dimasukkan pada `txtNama`: ' OR 1=1 --
+
+## 3. Analisis Logika Query Hasil Injeksi
+Ketika input di atas dimasukkan, string query di dalam program akan berubah menjadi:
+SELECT * FROM Pemilik WHERE NamaPemilik = '' OR 1=1 --'
+
+## 4. Strategi Pertahanan (Defense Strategy)
+Proyek utama ini mengamankan seluruh fungsi manipulasi data utama (Insert, Update, Delete) menggunakan Stored Procedure dengan tipe objek terparameterisasi (`CommandType.StoredProcedure`). Hal ini mereduksi input berbahaya hanya dianggap sebagai string literal murni oleh mesin database SQL Server.
+
 
 
 
