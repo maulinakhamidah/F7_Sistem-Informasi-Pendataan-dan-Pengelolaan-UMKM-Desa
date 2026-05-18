@@ -87,7 +87,14 @@
        - <img width="1201" height="602" alt="image" src="https://github.com/user-attachments/assets/57c8d392-afc8-4e33-8601-410285367c9d" />
 
 6. Test Injection
-7. Reset 
+   <img width="1132" height="880" alt="image" src="https://github.com/user-attachments/assets/2a9ad462-c458-42b2-8995-db5b6af8e25e" />
+
+7. Reset
+   <img width="1128" height="870" alt="image" src="https://github.com/user-attachments/assets/c5536862-645e-45c3-8aeb-79523fde67b7" />
+   <img width="1123" height="859" alt="image" src="https://github.com/user-attachments/assets/4f211bc2-7106-4dad-81ca-cff523db43e7" />
+   <img width="1130" height="863" alt="image" src="https://github.com/user-attachments/assets/848a8d46-6e41-4cb4-b00a-0a619bd27a5e" />
+
+
 
 # Laporan Skenario Uji Coba SQL Injection - UCP 2 PABD
 
